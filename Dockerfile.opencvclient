@@ -11,4 +11,5 @@ RUN pip3 install -U gsutil pyyaml tqdm cython torchvision
 RUN apt install -y python3-scipy python3-matplotlib python3-numpy
 RUN pip3 install -U pip
 RUN apt install -y vim
+RUN pip3 install opencv-python
 

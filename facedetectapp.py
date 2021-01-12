@@ -12,13 +12,14 @@ while(True):
     gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     
     # Display the resulting frame
-    cv.imshow('frame',gray)
+    #cv.imshow('frame',gray)
     if cv.waitKey(1) & 0xFF == ord('q'):
         break
 
-    if False:
+    # print('gray',gray)
+    if True:
         # face detection and other logic goes here
-        face_cascade = cv.CascadeClassifier('haarcascade_frontalface_default.xml')
+        face_cascade = cv.CascadeClassifier(cv.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         for (x,y,w,h) in faces:
