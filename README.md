@@ -124,11 +124,13 @@ docker build -t mqttbroker -f Dockerfile.mqttbroker .
 docker build -t mqttclientcloud -f Dockerfile.mqttclientcloud .
 ```
 
-Launched the containers:
+MQTT will be configured to listen to port 1883.  We need to setup a special rule on the security group used for launching the instance on AWS to allow public internet traffic on this port. 
+
+After setting up the port listening, I launched the containers:
 
 ```
 docker run --rm --name mqbroker --network hw03 -p 1883:1883 -d mqttbroker /usr/sbin/mosquitto
-docker run --rm --name mqclient --network hw03 -v ~/w251week3:/src -ti mqttclient
+docker run --rm --name mqclient --network hw03 -v ~/w251week3:/src -ti mqttclientcloud
 ```
 
 Then inside the mqclient container:
