@@ -1,5 +1,6 @@
 import paho.mqtt.client as mqtt
 import time
+import json
 import sys
 from threading import Thread
 
@@ -7,6 +8,7 @@ from threading import Thread
 def connect_broker(client):
     # retry connection every 3 seconds
     if not client.connected:
+        print("Trying to connect to "+client.label+" broker...")
         try:
             client.connect(client.MQTT_HOST, client.MQTT_PORT, 60)
         except:
@@ -44,14 +46,15 @@ def on_message(client,userdata, msg):
     #print("data",userdata,msg)
     
     # republish received message to cloud
-    msg = msg.payload
+    content = msg.payload
+    #print(content)
     if client.cloud_client.connected:
-        client.cloud_client.publish(client,cloud_client.MQTT_TOPIC, payload=msg, qos=1, retain=False)
+        client.cloud_client.publish(client.cloud_client.MQTT_TOPIC, payload=content, qos=1, retain=False)
         print('Cloud broker connected, message forwarded.')
     else:
         print('Cloud broker not connected, could not forward message.')
   except:
-      print("Error forwarding to cloud broker:", sys.exc_info()[0])
+      print("Error forwarding to cloud broker:", sys.exc_info())
 
 local_mqttclient = mqtt.Client()
 local_mqttclient.label = "local"
@@ -63,9 +66,6 @@ local_mqttclient.connected = False
 local_mqttclient.MQTT_HOST="mqbroker"
 local_mqttclient.MQTT_PORT=1883
 local_mqttclient.MQTT_TOPIC="faces"
-
-th_local_connect = Thread(target=connect_broker(local_mqttclient))
-th_local_connect.start()
 
 # Setup connection to cloud broker
 cloud_mqttclient = mqtt.Client()
