@@ -3,6 +3,14 @@ import time
 import json
 import sys
 from threading import Thread
+import os
+
+CLOUD_MQTT_HOST = os.getenv('CLOUD_MQTT_HOST')
+CLOUD_MQTT_PORT = os.getenv('CLOUD_MQTT_PORT')
+#print(CLOUD_MQTT_HOST, CLOUD_MQTT_PORT)
+if not CLOUD_MQTT_HOST or not CLOUD_MQTT_PORT:
+    print('Set environment variable CLOUD_MQTT_HOST before running this program.')
+    exit
 
 # Setup general methods for broker connection
 def connect_broker(client):
@@ -74,8 +82,8 @@ cloud_mqttclient.on_connect = on_connect
 cloud_mqttclient.on_disconnect = on_disconnect
 cloud_mqttclient.on_reconnect = on_connect
 cloud_mqttclient.connected = False
-cloud_mqttclient.MQTT_HOST="ec2-18-188-17-2.us-east-2.compute.amazonaws.com" # use "broker.hivemq.com" for public testing
-cloud_mqttclient.MQTT_PORT=1883
+cloud_mqttclient.MQTT_HOST=CLOUD_MQTT_HOST
+cloud_mqttclient.MQTT_PORT=int(CLOUD_MQTT_PORT)
 cloud_mqttclient.MQTT_TOPIC="tst011235"
 
 # Connect the two brokers with each other

@@ -171,14 +171,13 @@ docker build -t mqttclient -f Dockerfile.mqttclient .
 docker build -t opencvclient -f Dockerfile.opencvclient .
 ```
 
-Before launching the component to forward messages from the device to the cloud, we need to tailor the code using the address of the cloud instance that was setup above.
+Before launching the component to forward messages from the device to the cloud, we need to set environment variables using the address and port of the cloud instance running the MQTT broker that was setup above.
 
 ```
-vi imagefwdapp.py
+export CLOUD_MQTT_HOST=<address>
+export CLOUD_MQTT_PORT=<port>
 ```
-and editing the value for the variable CLOUD_MQTT_HOST.
-
-This could have been implemented as an argument passed into the script, however I chose to not do this for this assignment.
+Usually the port will be set to 1883.
 
 I created 2 shell scripts to automate the launch and shutdown of the device components.  To startup the NX components, run:
 
