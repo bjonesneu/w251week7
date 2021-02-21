@@ -5,6 +5,18 @@ import time
 import json
 from threading import Thread
 import paho.mqtt.client as mqtt
+from facenet_pytorch import MTCNN, InceptionResnetV1
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets
+import pandas as pd
+import os
+
+from PIL import Image
+
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print('Running on device: {}'.format(device))
+mtcnn = MTCNN(keep_all=True, device=device)
 
 # Setup connection to MQTT broker to publish detected faces
 LOCAL_MQTT_TOPIC="faces"
@@ -50,8 +62,8 @@ th_local_connect.start()
 
 # The argument 0 corresponds to /dev/video0, the first found camera.  In this case it is the USB camera.
 cap = cv.VideoCapture(0)
-
-while(True):
+cnt = 0
+while(cnt<3):
     # Capture frame-by-frame
     ret, frame = cap.read()
 
@@ -60,19 +72,27 @@ while(True):
 
     # Display the resulting frame
     #cv.imshow('frame',frame_gray) # for interactive debugging
-
+    print('cnt=',cnt)
     if True:  # debugging switch
         # face detection and other logic goes here
-        face_cascade = cv.CascadeClassifier(cv.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        #face_cascade = cv.CascadeClassifier(cv.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-        faces = face_cascade.detectMultiScale(frame_gray, 1.3, 5)
-        for (x,y,w,h) in faces:
-            print('Face detected at', x, y, w, h, ", broker connected:", local_mqttclient.connected)
+        #faces = face_cascade.detectMultiScale(frame_gray, 1.3, 5)
+        boxes, probs, landmarks = mtcnn.detect(frame, landmarks=True)
+        for box, prob in zip(boxes, probs):
+            x, y, w, h = box
+            x = int(x)
+            y = int(y)
+            w = int(w)
+            h = int(h)
+            print('Face detected at', x, y, w, h, ", probability:",round(prob,4),", broker connected:", local_mqttclient.connected)
             cv.rectangle(frame_gray, (x, y), (x+w, y+h), (255, 255, 255), 2)
             face = frame_gray[y:y+h,x:x+w] # extract data for detected face from frame
             #cv.imshow('frame',face)  # for dev/debugging
-            rc,png = cv.imencode('.png', face)
-            if local_mqttclient.connected:
+            #rc,png = cv.imencode('.png', face)
+            cv.imwrite('pics/it'+str(cnt)+'_face_at_'+str(x)+'_'+str(y)+'.png', face)#png)
+            
+            if False:#local_mqttclient.connected:
                 #print("Trying to publish")
                 #msg = png.tobytes() # for dev/debugging
                 #msg = "Test message from local (" + str(x) + ", " + str(y) + ")" # for dev/debugging
@@ -82,6 +102,7 @@ while(True):
                 #print(msg)
                 rc = local_mqttclient.publish(LOCAL_MQTT_TOPIC, payload=json.dumps(msg), qos=1, retain=False)
                 print("\tPublished face with rc = ",rc)
+    cnt +=1
 
 # When everything done, release all resources:  display, camera and mqtt
 cap.release()
